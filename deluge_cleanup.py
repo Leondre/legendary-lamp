@@ -59,7 +59,7 @@ MEDIA_EXTENSIONS = {
 # Optional: Only clean up torrents with these labels/categories.
 # Leave empty to check ALL torrents.
 # Example: LIMIT_TO_LABELS = {"sonarr", "radarr", "tv-sonarr", "movies-radarr"}
-LIMIT_TO_LABELS = set()
+LIMIT_TO_LABELS = ()
 
 # Whether to also delete the torrent's data files from disk when removing.
 # True  = remove torrent AND files (reclaim space)
