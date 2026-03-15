@@ -13,6 +13,7 @@ Designed for Unraid — run via the User Scripts plugin on a schedule.
 Safety features:
   - DRY RUN by default (set DRY_RUN = False to actually delete)
   - Minimum age guard (won't touch recently-added torrents)
+  - Minimum seed time guard (respects private tracker requirements)
   - Size threshold (ignores small non-media files like .nfo, .txt)
   - Logging with full detail of what was checked and why
   - Label/category filtering (optional)
@@ -42,6 +43,12 @@ DRY_RUN = True
 # Prevents removing torrents that were just added and haven't been
 # hardlinked by Sonarr/Radarr yet.
 MIN_AGE_HOURS = 24
+
+# Minimum actual seeding time in hours before considering for cleanup.
+# This uses Deluge's tracked seeding time, which only counts time spent
+# actively seeding — not time spent paused, stalled, or downloading.
+# Set this to meet your private tracker seed time requirements.
+MIN_SEED_TIME_HOURS = 336
 
 # Minimum file size in MB to consider "significant" when checking hardlinks.
 # Small files (.nfo, .txt, subtitles) are often not hardlinked by the *arrs,
@@ -143,7 +150,7 @@ class DelugeWebAPI:
         """Fetch all torrents with the fields we need."""
         fields = [
             "name", "save_path", "files", "time_added",
-            "label", "total_size", "state", "hash",
+            "label", "total_size", "state", "hash", "seeding_time",
         ]
         # Empty dict = all torrents
         return self._call("core.get_torrents_status", [{}, fields])
@@ -181,6 +188,12 @@ def check_torrent(torrent_id, info):
     age_hours = (time.time() - time_added) / 3600
     if age_hours < MIN_AGE_HOURS:
         return False, f"skipped (age {age_hours:.1f}h < {MIN_AGE_HOURS}h minimum)"
+
+    # Seed time check
+    seeding_time = info.get("seeding_time", 0)  # Deluge reports this in seconds
+    seed_hours = seeding_time / 3600
+    if seed_hours < MIN_SEED_TIME_HOURS:
+        return False, f"skipped (seed time {seed_hours:.1f}h < {MIN_SEED_TIME_HOURS}h minimum)"
 
     # Collect significant media files
     media_files = []
