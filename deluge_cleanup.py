@@ -75,7 +75,7 @@ DELETE_DATA = True
 
 # Path mapping: If the script runs in a different context (e.g., host vs Docker)
 # and file paths differ, set a mapping here.
-# Example: If Deluge sees "/downloads/..." but on the host it's "/mnt/user/downloads/..."
+# Example: If Deluge sees "/data/..." but on the host it's "/mnt/user/downloads/..."
 #   PATH_MAP = {"/data": "/mnt/user/downloads"}
 # Leave empty if paths are the same.
 PATH_MAP = {}
